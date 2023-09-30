@@ -153,4 +153,103 @@ def test_verify_default_sort_order(driver):
 def test_verify_user_sort_order(driver):
     verify_user_sort_order(driver)
 
+# Helper function to add random 3 items to cart
+def add_random_items_to_cart(driver, num_items=3):
+    # Login if not already logged in
+    driver.get(appUrl)
+
+    login(driver, valid_user, sign_in_password)
+    items = driver.find_elements(By.CLASS_NAME, "inventory_item")
+    for i in range(num_items):
+        items[i].find_element(By.CLASS_NAME, "btn_primary").click()
+
+# Helper function to add highest and lowest price items to cart
+def add_highest_and_lowest_price_items_to_cart(driver):
+    # Login if not already logged in
+    driver.get(appUrl)
+    login(driver, valid_user, sign_in_password)
+
+    items = driver.find_elements(By.CLASS_NAME, "inventory_item")
+    items.sort(key=lambda x: float(x.find_element(By.CLASS_NAME, "inventory_item_price").text.replace("$", "")))
+    items[0].find_element(By.CLASS_NAME, "btn_primary").click()  # Add lowest price item
+    items[-1].find_element(By.CLASS_NAME, "btn_primary").click()  # Add highest price item
+
+# Test to verify items in cart are retained after logout
+def test_verify_items_in_cart_retained(driver):
+    try:
+        # Login if not already logged in
+        driver.get(appUrl)
+        login(driver, valid_user, sign_in_password)
+
+        # Add 3 random items to cart
+        add_random_items_to_cart(driver, num_items=3)
+
+        # Logout
+        logout(driver)
+
+        # Login again
+        login(driver, valid_user, sign_in_password)
+
+        # Navigate to cart and verify previously added items are in cart
+        driver.find_element(By.CLASS_NAME, "shopping_cart_link").click()
+        items_in_cart = driver.find_elements(By.CLASS_NAME, "cart_item")
+        assert len(items_in_cart) == 3
+
+        # Logout
+        logout(driver)
+
+    except Exception as e:
+        print("Test failed: ", str(e))
+        raise
+
+# Test to verify user can place order
+def test_verify_user_can_place_order(driver):
+    try:
+        # Login if not already logged in
+        driver.get(appUrl)
+        login(driver, valid_user, sign_in_password)
+
+        # Add highest and lowest price items to cart
+        add_highest_and_lowest_price_items_to_cart(driver)
+
+        # Navigate to checkout information page
+        driver.find_element(By.CLASS_NAME, "shopping_cart_link").click()
+        driver.find_element(By.CLASS_NAME, "checkout_button").click()
+
+        # Verify input field validations on checkout information page
+        first_name_field = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located((By.ID, "first-name"))
+        )
+        first_name_field.send_keys("John")
+
+        last_name_field = driver.find_element(By.ID, "last-name")
+        last_name_field.send_keys("Doe")
+
+        zip_code_field = driver.find_element(By.ID, "postal-code")
+        zip_code_field.send_keys("12345")
+
+        # Navigate to checkout overview page
+        driver.find_element(By.CLASS_NAME, "cart_button").click()
+
+        # Verify total price and place order
+        total_price = float(driver.find_element(By.CLASS_NAME, "summary_total_label").text.replace("Total: $", ""))
+        assert total_price > 0  # Verify total price is greater than 0
+
+        # Place order
+        driver.find_element(By.CLASS_NAME, "btn_action").click()
+
+        # Verify confirmation and navigate to home page
+        confirmation_message = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located((By.CLASS_NAME, "complete-header"))
+        )
+        assert confirmation_message.text == "Thank you for your order!"
+
+        # Navigate to home page
+        driver.find_element(By.CLASS_NAME, "btn_primary").click()
+
+    except Exception as e:
+        print("Test failed: ", str(e))
+        raise
+
+
 
