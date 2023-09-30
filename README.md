@@ -1,4 +1,4 @@
-# Swag Labs Automated Testing
+# Swag Labs Automated Testing - BT ASSIGNMENT
 
 This repository contains automated tests for the Swag Labs web application using Selenium WebDriver and Python. The tests cover login functionality, item sorting, adding items to the cart, and placing orders.
 
