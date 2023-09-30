@@ -23,17 +23,7 @@ def driver():
     yield driver
     driver.quit()
 
-
-
-# 1. Login validations
-# Test 1: Verify "standard_user" & "performance_glitch_user” is able to do successful login and land on home page and do logout.
-# Test 2: Verify "locked_out_user" login fails and assert error on login screen.
-
 # Helper function for login
-# def login(driver, username, password):
-#     driver.find_element(By.ID, "user-name").send_keys(username)
-#     driver.find_element(By.ID, "password").send_keys(password)
-#     driver.find_element(By.ID, "login-button").click()
 def login(driver, username, password):
     WebDriverWait(driver, 10).until(
         EC.visibility_of_element_located((By.ID, "user-name"))
@@ -162,3 +152,5 @@ def test_verify_default_sort_order(driver):
 # Test to verify user can change sort order
 def test_verify_user_sort_order(driver):
     verify_user_sort_order(driver)
+
+
